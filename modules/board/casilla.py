@@ -8,17 +8,33 @@ wet_path_img = "assets/planets/wet.png"
 
 class Casilla:
     def __init__(self, position):
-        self.valor = "-"
+        self.value = "-"
         self.position = position
+        self.state = ""
         self.setDefault()
     
+    def setByNumber(self, number):
+        if number == 1:
+            self.setDefault()
+        if number == 2:
+            self.setAvailable()
+        if number == 3:
+            self.setDry()
+        if number == 4:
+            self.setWet()
+
+
     def setDefault(self):
+        self.state = "default"
         self.__setSprite(default_path_img)
     def setAvailable(self):
+        self.state = "available"
         self.__setSprite(available_path_img)
     def setDry(self):
+        self.state = "dry"
         self.__setSprite(dry_path_img)
     def setWet(self):
+        self.state = "wet"
         self.__setSprite(wet_path_img)
 
     def __setSprite(self, path):
