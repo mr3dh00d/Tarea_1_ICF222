@@ -1,15 +1,19 @@
 import cocos
-import modules.board. possibility as possibility
-import modules.board.casilla as casilla
-from modules.board.inPlanet import inPlanet
+import modules.possibility as possibility
+import modules.casilla as casilla
+import modules.ia as ia
+from modules.sleeper import sleeper
+from modules.inPlanet import inPlanet
 from random import randint
 
 N = 6
 
-class Tablero(cocos.layer.Layer):
+class Game(cocos.layer.Layer):
     is_event_handler = True
     def __init__(self):
         super().__init__()
+        self.canSelect = True
+        self.Turn = 1
         self.casillas =  []
         self.availables = []
         self.red = []
@@ -20,12 +24,10 @@ class Tablero(cocos.layer.Layer):
             self.casillas.append([])
             for j in range(N):
                 self.casillas[i].append(casilla.Casilla((position[0] + (104*i), position[1] + (104*j))))
-                if(i, j) == (2, 3) or (i,j) == (3, 3) or (i,j) == (3, 4):#((i, j) == (4,5) or (i, j) == (5, 4)):#((i, j) == (2+r, 2) or (i, j)== (3-r, 3)):
-                    self.casillas[i][j].value = "x"
+                if((i, j) == (2+r, 2) or (i, j)== (3-r, 3)):#(i, j) == (2, 3) or (i,j) == (3, 3) or (i,j) == (3, 4):#((i, j) == (4,5) or (i, j) == (5, 4)):
                     self.casillas[i][j].setDry()
                     self.red.append((i, j))
-                elif(i ,j) == (2, 2) or (i, j) == (2, 4):#((i, j) == (4,4) or (i, j) == (5, 5)):#((i, j)== (3-r, 2) or (i, j) == (2+r, 3)):
-                    self.casillas[i][j].value = "o"
+                elif((i, j)== (3-r, 2) or (i, j) == (2+r, 3)):#(i ,j) == (2, 2) or (i, j) == (2, 4):#((i, j) == (4,4) or (i, j) == (5, 5)):
                     self.casillas[i][j].setWet()
                     self.blue.append((i, j))
                 self.add(self.casillas[i][j].sprite)
@@ -44,12 +46,12 @@ class Tablero(cocos.layer.Layer):
             for j in range(y-1, y+2):
                 if (N > i >= 0 and N > j >= 0) and (i != x or j != y):
                     val = self.casillas[i][j].value
-                    print("del punto:", point, "reviso casilla:", (i, j), "su valor es:", val, end=" ")
+                    # print("del punto:", point, "reviso casilla:", (i, j), "su valor es:", val, end=" ")
                     if(val == self.reverse(self.casillas[x][y].value)):
-                        print("revisare su posiblidad...", end=" ")
+                        # print("revisare su posiblidad...", end=" ")
                         available = self.checkPossibility(point, (i-x, j-y))
                         if available:
-                            print("es posible en el punto", available, end=" ")
+                            # print("es posible en el punto", available, end=" ")
                             if available not in [a.point for a in self.availables]:
                                 pos = possibility.Possibility()
                                 pos.point = available
@@ -60,9 +62,9 @@ class Tablero(cocos.layer.Layer):
                                     if ava.point == available:
                                         ava.objetives.append(point)
 
-                        else: 
-                            print("no es posible", end=" ")
-                    print()
+                    #     else: 
+                    #         print("no es posible", end=" ")
+                    # print()
 
     def checkPossibility(self, point, direction):
         x, y = point
@@ -102,17 +104,42 @@ class Tablero(cocos.layer.Layer):
         self.add(self.casillas[x][y].sprite)
 
     def on_mouse_motion (self, x, y, dx, dy):
-        for available in [a.point for a in self.availables]:
-            i, j = available
-            inP = inPlanet(self.casillas[i][j].position, (x,y))
-            if(inP and self.casillas[i][j].state != "available"):
-                self.changeSprite((i, j), 2)
-            elif(not inP and self.casillas[i][j].state == "available"):
-                self.changeSprite((i, j), 1)
+        if self.canSelect:
+            for available in [a.point for a in self.availables]:
+                i, j = available
+                inP = inPlanet(self.casillas[i][j].position, (x,y))
+                if(inP and self.casillas[i][j].state != "available"):
+                    self.changeSprite((i, j), 2)
+                elif(not inP and self.casillas[i][j].state == "available"):
+                    self.changeSprite((i, j), 1)
                 
     def on_mouse_press (self, x, y, buttons, modifiers):
-        for available in self.availables:
-            print(available.point, available.objetives, available.getTilesToChange())
+        if self.canSelect and self.Turn%2 == 1:
+            ip = False
+            for available in self.availables:
+                i, j = available.point
+                if inPlanet(self.casillas[i][j].position, (x, y)):
+                    self.Turn+=1
+                    self.canSelect = False
+                    select = available
+                    ip = True
+                    break
+            if ip:
+                for casilla in select.getTilesToChange():
+                    self.changeSprite(casilla, 4)
+                self.updateScore()
+                self.checkAvailablesFor(self.red)
+                self.redAction()
+    
+    def redAction(self):
+        for casilla in ia.minimax(self.availables).getTilesToChange():
+            self.changeSprite(casilla, 3)
+        self.updateScore()
+        self.checkAvailablesFor(self.blue)
+        self.Turn+=1
+        self.canSelect = True
+        # for available in self.availables:
+        #     print(available.point, available.objetives, available.getTilesToChange())
     # def on_mouse_motion (self, x, y, dx, dy):
         # ip = False
         # for i in range(N):

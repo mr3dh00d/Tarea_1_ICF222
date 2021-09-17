@@ -4,7 +4,7 @@ class Possibility:
         self.objetives = []
     
     def getTilesToChange(self):
-        res = []
+        res = [self.point]
         for objetive in self.objetives:
             x, y = objetive
             x = self.point[0] - x
@@ -19,5 +19,4 @@ class Possibility:
                         res.append(p)
                 i += 1 * (0 if x == 0 else (1 if x > 0 else -1))
                 j += 1 * (0 if y == 0 else (1 if y > 0 else -1))
-        res.append(self.point)
         return res

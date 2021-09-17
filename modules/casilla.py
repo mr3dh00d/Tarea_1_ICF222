@@ -26,15 +26,19 @@ class Casilla:
 
     def setDefault(self):
         self.state = "default"
+        self.value = "-"
         self.__setSprite(default_path_img)
     def setAvailable(self):
         self.state = "available"
+        self.value = "-"
         self.__setSprite(available_path_img)
     def setDry(self):
         self.state = "dry"
+        self.value = "x"
         self.__setSprite(dry_path_img)
     def setWet(self):
         self.state = "wet"
+        self.value = "o"
         self.__setSprite(wet_path_img)
 
     def __setSprite(self, path):
