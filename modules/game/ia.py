@@ -1,12 +1,14 @@
 # import copy
 import modules.possibility as possibility
-import modules.board as board
+import modules.board.board as board
 from modules.utiles import reverse
 from random import randint
-from planets_of_galaxy import N
+from modules.env import ENV
+
+N = ENV["number_of_tiles"]
 
 class IA:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def minimax(self, possibilities: "list[possibility.Possibility]") -> possibility.Possibility:
@@ -30,9 +32,9 @@ class IA:
         for i in range(x-1, x+2):
             for j in range(y-1, y+2):
                 if (N > i >= 0 and N > j >= 0) and (i != x or j != y):
-                    val = board.getCasilla((i, j)).value
-                    # print("del punto:", point, board.getCasilla(point).value, "reviso casilla:", (i, j), "su valor es:", val, end=" ")
-                    if(val == reverse(board.getCasilla(point).value)):
+                    val = board.getTile((i, j)).value
+                    # print("del punto:", point, board.getTile(point).value, "reviso casilla:", (i, j), "su valor es:", val, end=" ")
+                    if(val == reverse(board.getTile(point).value)):
                         # print("revisare su posiblidad...", end=" ")
                         available = self.checkPossibility(board, point, (i-x, j-y))
                         if available:
@@ -53,18 +55,18 @@ class IA:
                     #         print("no es posible", end=" ")
                     # print()
 
-    def checkPossibility(self, board: board.Board, point: "tuple[int, int]", direction: "tuple[int, int]"):
+    def checkPossibility(self, board: board.Board, point: "tuple[int, int]", direction: "tuple[int, int]") -> bool:
         x, y = point
         dirx, diry = direction
         count = 1
         posibility = False
-        obj = reverse(board.getCasilla(point).value)
+        obj = reverse(board.getTile(point).value)
         while True:
             i, j = x+(dirx*count), y+(diry*count)
             if 0 > i or i > N-1 or 0 > j or j > N-1:
                 posibility = False
                 break
-            cursor = board.getCasilla((i, j)).value
+            cursor = board.getTile((i, j)).value
             if cursor == obj:
                 posibility = True
                 count += 1

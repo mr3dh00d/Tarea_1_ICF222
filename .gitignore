@@ -1,2 +1,5 @@
 assets
 *.pdf
+__pycache__/
+*.py[cod]
+*.pyo

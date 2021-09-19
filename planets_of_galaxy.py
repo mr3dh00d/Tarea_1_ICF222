@@ -1,8 +1,6 @@
 import cocos
-import modules.background as background
-import modules.game as game
-
-N = 6
+import modules.layouts.background as background
+import modules.game.game as game
 
 if __name__ == "__main__":
     cocos.director.director.init(width=900, height=900, caption="Planets of the Galaxy")

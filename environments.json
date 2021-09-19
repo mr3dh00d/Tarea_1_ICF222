@@ -1,0 +1,11 @@
+{
+    "number_of_tiles": 6,
+    "sprite_size": 64,
+    "space_between_tiles": 40,
+    "assets_paths": {
+        "default_path_img": "assets/planets/default.png",
+        "available_path_img": "assets/planets/available.png",
+        "dry_path_img": "assets/planets/dry.png",
+        "wet_path_img": "assets/planets/wet.png"
+    }
+}
