@@ -4,3 +4,9 @@ def inPlanet(planet_center, position):
         if(rectangle[0][1] <= position[1] <= rectangle[1][1]):
             return True
     return False
+
+def reverse(value):
+    if value == "x":
+        return "o"
+    elif value == "o":
+        return "x"
