@@ -1,3 +1,4 @@
+from random import seed
 import cocos
 from modules.board import board
 from modules.game import ia
@@ -13,10 +14,9 @@ class Game(cocos.layer.Layer):
         self.canSelect = True
         self.select = None
         self.finish = False
-        self.difficulty = difficulty
         self.Turn = 1
         self.board = board.Board(self.add)
-        self.ia = ia.IA()
+        self.ia = ia.IA(difficulty)
         self.setLabels()
         self.ia.checkAvailablesFor(self.board, "o")
 
@@ -84,7 +84,7 @@ class Game(cocos.layer.Layer):
     
     def redAction(self) -> None:
         if len(self.board.availables()) > 0:
-            for casilla in self.ia.minimax(self.board.availables()).getTilesToChange():
+            for casilla in self.ia.bestMove(self.board).getTilesToChange():
                 self.changeSprite(casilla, 3)
         self.updateScore()
         self.turnManager()

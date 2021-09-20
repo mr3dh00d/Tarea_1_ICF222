@@ -8,8 +8,8 @@ class BackgroundLayer(cocos.layer.Layer):
         self.spr = cocos.sprite.Sprite('assets/background.png')
         self.spr.position = 450, 450
         self.add(self.spr)
-        ls = pyglet.image.ImageGrid(pyglet.image.load('assets/little-star.png'),1,50)
-        ls_anim = pyglet.image.Animation.from_image_sequence(ls[0:], 0.15)
+        ls = pyglet.image.ImageGrid(pyglet.image.load('assets/little-star.png'),1,5)
+        ls_anim = pyglet.image.Animation.from_image_sequence(ls[0:], 0.1)
         postions_stars = []
         for n in range(randint(70, 80)):
             while True:

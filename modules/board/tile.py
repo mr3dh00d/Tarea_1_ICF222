@@ -3,9 +3,9 @@ import pyglet
 from modules.env import ENV
 
 class Tile:
-    def __init__(self, position: "tuple [int, int]") -> None:
-        self.position = position
-        self.setSprite(1)
+    def __init__(self) -> None:
+        self.value = "-"
+        # self.setSprite(1)
     
     def setSprite(self, option: int) -> None:
         if option == 1:
