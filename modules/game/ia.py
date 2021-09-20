@@ -10,25 +10,28 @@ N = ENV["number_of_tiles"]
 class IA:
     def __init__(self, difficulty: int) -> None:
         self.difficulty = difficulty
-        pass
 
     def bestMove(self, brd: board.Board) -> possibility.Possibility:
         possibilities = brd.availables()
         bestScore = -inf
         move = None
+        alphaBeta = (-inf, inf)
         for possibility in possibilities:
             copy_board = copyBoard(brd)
             for tile in possibility.getTilesToChange():
                 copy_board.setTile(tile, "x")
-            score = self.minimax(copy_board, 0, False)
+            score = self.minimax(copy_board, 0, False, alphaBeta)
             if score > bestScore:
                 bestScore = score
                 move = possibility
+            alphaBeta = (max(score, alphaBeta[0]), alphaBeta[1])
+            if(alphaBeta[0] >= alphaBeta[1]):
+                break
         return move
     
-    def minimax(self, brd: board.Board, depth: int, isMaximizing: bool) -> int:
+    def minimax(self, brd: board.Board, depth: int, isMaximizing: bool, alphaBeta: "tuple[int, int]") -> int:
         result = self.checkWinner(brd)
-        if result != False or depth == (2 if self.difficulty else 0):
+        if result != False or depth == (3 if self.difficulty else 0):
             brd.updateScore()
             return len(brd.red)
         if isMaximizing:
@@ -40,17 +43,13 @@ class IA:
                     copy_board = copyBoard(brd)
                     for tile in possibility.getTilesToChange():
                         copy_board.setTile(tile, "x")
-                    score = self.minimax(copy_board, depth+1, False)
+                    score = self.minimax(copy_board, depth+1, False, alphaBeta)
                     if self.difficulty:
-                        if possibility.point in [(0,0), (0,5), (5,0), (5,5)]:
-                            score += 20
-                        if possibility.point in [(1,1), (4,4), (1,4), (4,1)]:
-                            score -= 3
-                        if possibility.point in [(0,1), (1,0), (4,0), (5,1), (0,4), (1,5), (4,5), (5,4)]:
-                            score -= 1
-                        if possibility.point in [(2,0), (0,2), (3,0), (5,2), (0,3), (2,5), (3,5), (5,3)]:
-                            score += 4
+                        score += self.strategyForPlay(possibility.point, isMaximizing)
                     bestScore = max(bestScore, score)
+                    alphaBeta = (max(score, alphaBeta[0]), alphaBeta[1])
+                    if(alphaBeta[0] >= alphaBeta[1]):
+                        break
                 return bestScore
             else:
                 brd.updateScore()
@@ -64,17 +63,13 @@ class IA:
                     copy_board = copyBoard(brd)
                     for tile in possibility.getTilesToChange():
                         copy_board.setTile(tile, "o")
-                    score = self.minimax(copy_board, depth+1, True)
+                    score = self.minimax(copy_board, depth+1, True, alphaBeta)
                     if self.difficulty:
-                        if possibility.point in [(0,0), (0,5), (5,0), (5,5)]:
-                            score -= 20
-                        if possibility.point in [(1,1), (4,4), (1,4), (4,1)]:
-                            score += 3
-                        if possibility.point in [(0,1), (1,0), (4,0), (5,1), (0,4), (1,5), (4,5), (5,4)]:
-                            score += 1
-                        if possibility.point in [(2,0), (0,2), (3,0), (5,2), (0,3), (2,5), (3,5), (5,3)]:
-                            score -= 4
+                        score += self.strategyForPlay(possibility.point, isMaximizing)
                     bestScore = min(bestScore, score)
+                    alphaBeta = (alphaBeta[0], min(score, alphaBeta[1]))
+                    if(alphaBeta[0] >= alphaBeta[1]):
+                        break
                 return bestScore
             else:
                 brd.updateScore()
@@ -85,7 +80,17 @@ class IA:
             return 1 if len(brd.blue) > len(brd.red) else -1 if len(brd.red) > len(brd.blue) else 0
         return False
         
-
+    def strategyForPlay(self, point: "tuple[int, int]", isMaximizing: bool) -> int:
+        result = 0
+        if point in [(0,0), (0,5), (5,0), (5,5)]:
+            result = 20
+        elif point in [(1,1), (4,4), (1,4), (4,1)]:
+            result = 3
+        elif point in [(0,1), (1,0), (4,0), (5,1), (0,4), (1,5), (4,5), (5,4)]:
+            result = 1
+        elif point in [(2,0), (0,2), (3,0), (5,2), (0,3), (2,5), (3,5), (5,3)]:
+            result = 4
+        return result * (1 if isMaximizing else -1)
 
     def checkAvailablesFor(self, brd: board.Board, objetives: str) -> bool:
         brd.availables([])
