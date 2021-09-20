@@ -1,6 +1,6 @@
 # import copy
-import modules.possibility as possibility
-import modules.board.board as board
+from modules.game import possibility
+from modules.board import board
 from modules.utiles import reverse
 from random import randint
 from modules.env import ENV
@@ -51,7 +51,7 @@ class IA:
                                     if ava.point == available:
                                         ava.objetives.append(point)
 
-                    #     else: 
+                    #     else:
                     #         print("no es posible", end=" ")
                     # print()
 

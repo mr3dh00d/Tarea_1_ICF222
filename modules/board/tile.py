@@ -26,6 +26,6 @@ class Tile:
             self.__setSprite(ENV["assets_paths"]["wet_path_img"])
 
     def __setSprite(self, path: str) -> None:
-        self.sprite = pyglet.image.ImageGrid(pyglet.image.load(path), 1, 50)
-        self.sprite = pyglet.image.Animation.from_image_sequence(self.sprite[0:], 0.2)
+        self.sprite = pyglet.image.ImageGrid(pyglet.image.load(path), 1, 10)
+        self.sprite = pyglet.image.Animation.from_image_sequence(self.sprite[0:], 0.4)
         self.sprite = cocos.sprite.Sprite(self.sprite, self.position)

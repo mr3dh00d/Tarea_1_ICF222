@@ -1,14 +1,19 @@
 import cocos
-import modules.board.board as board
-import modules.game.ia as ia
-from modules.utiles import inPlanet
+from modules.board import board
+from modules.game import ia
+from modules.layouts import background, win
+from modules.utiles import inPlanet, createLabel
 from cocos.actions import *
+from cocos.scenes import *
 
 class Game(cocos.layer.Layer):
     is_event_handler = True
-    def __init__(self) -> None:
+    def __init__(self, difficulty: int) -> None:
         super().__init__()
         self.canSelect = True
+        self.select = None
+        self.finish = False
+        self.difficulty = difficulty
         self.Turn = 1
         self.board = board.Board(self.add)
         self.ia = ia.IA()
@@ -22,45 +27,59 @@ class Game(cocos.layer.Layer):
 
     def on_mouse_motion (self, x, y, dx, dy):
         if self.canSelect:
-            for available in [a.point for a in self.board.availables()]:
-                i, j = available
-                inP = inPlanet(self.board.getTile(available).position, (x,y))
-                if(inP and self.board.getTile(available).state != "available"):
-                    self.changeSprite((i, j), 2)
-                elif(not inP and self.board.getTile(available).state == "available"):
-                    self.changeSprite((i, j), 1)
+            for available in self.board.availables():
+                inP = inPlanet(self.board.getTile(available.point).position, (x,y))
+                if(inP and self.board.getTile(available.point).state != "available"):
+                    self.select = available
+                    self.changeSprite(available.point, 2)
+                elif(not inP and self.board.getTile(available.point).state == "available"):
+                    self.select = None
+                    self.changeSprite(available.point, 1)
 
     def turnManager(self):
-        pass
-                
-    def on_mouse_press (self, x, y, buttons, modifiers):
-        if self.canSelect and self.Turn%2 == 1:
-            if len(self.board.availables()) > 0:
-                ip = False
-                for available in self.board.availables():
-                    point = available.point
-                    if inPlanet(self.board.getTile(point).position, (x, y)):
-                        select = available
-                        ip = True
-                        break
-                if ip:
-                    for casilla in select.getTilesToChange():
-                        self.changeSprite(casilla, 4)
-                    self.updateScore()
-                    if self.ia.checkAvailablesFor(self.board, "x"):
-                        self.Turn+=1
-                        self.canSelect = False
-                        self.redAction()
-                    elif self.ia.checkAvailablesFor(self.board, "o"):
-                        pass
-            else:
-                self.updateScore()
+        if not self.finish:
+            if self.Turn%2 == 1:
                 if self.ia.checkAvailablesFor(self.board, "x"):
                     self.Turn+=1
                     self.canSelect = False
-                    self.redAction()
+                    self.viewRed(True)
                 elif self.ia.checkAvailablesFor(self.board, "o"):
                     pass
+                else:
+                    self.finish = True
+            else:
+                if self.ia.checkAvailablesFor(self.board, "o"):
+                    self.Turn+=1
+                    self.canSelect = True
+                    self.select = None
+                elif self.ia.checkAvailablesFor(self.board, "x"):
+                    self.redAction()
+                else:
+                    self.finish = True
+            if self.finish:
+                self.canSelect = False
+                self.viewRed(True)
+                
+    def on_mouse_press (self, x, y, buttons, modifiers):
+        if not self.finish:
+            if self.canSelect and self.Turn%2 == 1:
+                if len(self.board.availables()) > 0:
+                    if self.select:
+                        for casilla in self.select.getTilesToChange():
+                            self.changeSprite(casilla, 4)
+                        self.updateScore()
+                        self.turnManager()
+                else:
+                    self.turnManager()
+            else:
+                self.viewRed(False)
+                self.redAction()
+        else:
+            w = len(self.board.blue) > len(self.board.red)
+            newScene = cocos.scene.Scene()
+            newScene.add(background.BackgroundLayer())
+            newScene.add(win.WinLayer(w))
+            cocos.director.director.replace(FadeTRTransition(newScene, duration=1))
 
     
     def redAction(self) -> None:
@@ -68,32 +87,31 @@ class Game(cocos.layer.Layer):
             for casilla in self.ia.minimax(self.board.availables()).getTilesToChange():
                 self.changeSprite(casilla, 3)
         self.updateScore()
-        if self.ia.checkAvailablesFor(self.board, "o"):
-            self.Turn+=1
-            self.canSelect = True
-        elif self.ia.checkAvailablesFor(self.board, "x"):
-            self.redAction()
+        self.turnManager()
 
     def setLabels(self) -> None:
-        self.title = self.createLabel('Planets of the Galaxy', (450,800))
+        self.title = createLabel('Planets of the Galaxy', (450,800))
         self.add(self.title)
-        self.vs = self.createLabel('vs', (450,750))
+        self.vs = createLabel('vs', (450,750))
         self.add(self.vs)
-        self.blue_score = self.createLabel("", (400,750), (79, 164, 184, 255))
+        self.blue_score = createLabel('', (400,750), (79, 164, 184, 255))
         self.add(self.blue_score)
-        self.red_score = self.createLabel("", (500,750), (230, 69, 57, 255))
+        self.red_score = createLabel('', (500,750), (230, 69, 57, 255))
         self.add(self.red_score)
+        self.view_red = createLabel('', (450, 30), size=20)
+        self.add(self.view_red)
         self.updateScore()
-
-    def createLabel(self, text: str, position: "tuple[int, int]", color=(255, 255, 255, 255)) -> cocos.text.Label:
-        return cocos.text.Label(text,
-        font_name = 'DPComic',
-        font_size = 32,
-        position = position,
-        color = color,
-        anchor_x = 'center', anchor_y = 'center')
 
     def updateScore(self) -> None:
         self.board.updateScore()
         self.blue_score.element.text = str(len(self.board.blue))
         self.red_score.element.text = str(len(self.board.red))
+
+    def viewRed(self, view: bool) -> None:
+        if view:
+            if not self.finish:
+                self.view_red.element.text = "Click on the screen to see the opponent's play"
+            else:
+                self.view_red.element.text = "Click on the screen to continue"
+        else:
+            self.view_red.element.text = ''

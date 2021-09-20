@@ -6,6 +6,8 @@
         "default_path_img": "assets/planets/default.png",
         "available_path_img": "assets/planets/available.png",
         "dry_path_img": "assets/planets/dry.png",
-        "wet_path_img": "assets/planets/wet.png"
+        "wet_path_img": "assets/planets/wet.png",
+        "win_dry_path": "assets/wins/dry_win.png",
+        "win_wet_path": "assets/wins/wet_win.png"
     }
 }

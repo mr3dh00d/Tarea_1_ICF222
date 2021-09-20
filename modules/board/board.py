@@ -1,6 +1,6 @@
 import cocos
-import modules.board.tile as tile
-import modules.possibility as possibility
+from modules.board import tile
+from modules.game import possibility
 from random import randint
 from modules.env import ENV
 
